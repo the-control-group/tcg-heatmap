@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>tcg-heatmap-test</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<script src="../../webcomponentsjs/webcomponents.js"></script>
+	<script src="../../web-component-tester/browser.js"></script>
+	<script src="../../jquery/dist/jquery.min.js"></script>
+	<link href="../tcg-heatmap.html" rel="import">
+</head>
+<body unresolved>
+	<tcg-heatmap></tcg-heatmap>
+	<script>
+	window.addEventListener('polymer-ready', function(e) {
+		var el = document.querySelector('tcg-heatmap');
+		suite('<tcg-heatmap>', function() {
+			test('initializes', function () {
+				assert(el._readied);
+			});
+		});
+	});
+	</script>
+</body>
+</html>

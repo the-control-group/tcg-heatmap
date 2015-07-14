@@ -1,0 +1,162 @@
+<!-- copied this guy: http://bl.ocks.org/tjdecke/5558084 -->
+<link rel="import" href="../polymer/polymer.html">
+<polymer-element name="tcg-heatmap" attributes="margin width height duration legendClassName cellBackgroundClassName cellTextClassName xAxisLabelClassName yAxisLabelClassName xAxisLabels yAxisLabels bgColors textColors data legendElementWidth">
+	<template>
+		<div id="chart"></div>
+	</template>
+	<script src="../d3/d3.js"></script>
+	<script>
+		Polymer({
+			publish: {
+				margin: {
+					top: 50,
+					right: 0,
+					left: 30,
+					bottom: 100
+				},
+				legendElementWidth: null,
+				width: 960,
+				height: 430,
+				duration: 1000,
+				legendClassName: 'legend',
+				cellBackgroundClassName: 'cell',
+				cellTextClassName: 'text',
+				xAxisLabelClassName: 'xAxisLabel',
+				yAxisLabelClassName: 'yAxisLabel',
+				xAxisLabels: [],
+				yAxisLabels: [],
+				bgColors: [],
+				textColors: [],
+				data: [],
+			},
+			ready: function() {
+				var poly = this;
+				this._gridSize = Math.floor((this.width - this.margin.left - this.margin.right) / this.xAxisLabels.length);
+				this._svg = d3.select(this.$.chart).append('svg')
+					.attr('width', this.width)
+					.attr('height', this.height)
+					.append('g')
+					.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+
+				this._svg.selectAll('.'+poly.yAxisLabelClassName)
+					.data(this.yAxisLabels)
+					.enter().append('text')
+						.text(function (d) {
+							return d;
+						})
+						.attr('x', 0)
+						.attr('y', function (d, i) {
+							return i * poly._gridSize;
+						})
+						.style('text-anchor', 'end')
+						.attr('transform', 'translate(-6,' + poly._gridSize / 1.5 + ')')
+						.attr('class', function (d, i) {
+							return poly.yAxisLabelClassName;
+						});
+
+				this._svg.selectAll('.'+poly.xAxisLabelClassName)
+					.data(this.xAxisLabels)
+					.enter().append('text')
+						.text(function(d) {
+							return d;
+						})
+						.attr('x', function(d, i) {
+							return i * poly._gridSize;
+						})
+						.attr('y', 0)
+						.style('text-anchor', 'middle')
+						.attr('transform', 'translate(' + poly._gridSize / 2 + ', -6)')
+						.attr('class', function(d, i) {
+							return poly.xAxisLabelClassName;
+						});
+			},
+			dataChanged: function(oldValue,newValue) {
+				var poly = this;
+				var height = this.height - this.margin.top - this.margin.bottom;
+				var legendElementWidth = this.legendElementWidth || this._gridSize*2;
+
+				var bgColorScale = d3.scale.quantile()
+					.domain([0, poly.bgColors.length - 1, d3.max(poly.data, function (d) {
+						return d.value;
+					})])
+					.range(poly.bgColors);
+
+				var textColorScale = d3.scale.quantile()
+					.domain([0, poly.textColors.length - 1, d3.max(poly.data, function (d) {
+						return d.value;
+					})])
+					.range(poly.textColors);
+
+				var cellBackgrounds = this._svg.selectAll('.'+poly.cellBackgroundClassName)
+					.data( poly.data )
+					.enter().append('rect')
+						.attr('x', function(d) {
+							return (d.x - 1) * poly._gridSize;
+						})
+						.attr('y', function(d) {
+							return (d.y - 1) * poly._gridSize;
+						})
+						.attr('class', poly.cellBackgroundClassName)
+						.attr('width', poly._gridSize)
+						.attr('height', poly._gridSize)
+						.style('fill', poly.bgColors[0]);
+
+
+				cellBackgrounds.transition().duration(poly.duration)
+					.style('fill', function(d) {
+						return bgColorScale(d.value);
+					});
+
+				var cellTexts = this._svg.selectAll('.'+poly.cellTextClassName)
+					.data( poly.data )
+					.enter().append('text')
+						.attr('x', function(d) {
+							return ((d.x - 1) * poly._gridSize) + (poly._gridSize/2);
+						})
+						.attr('y', function(d) {
+							return ((d.y - 1) * poly._gridSize) + (poly._gridSize/2);
+						})
+						.style('text-anchor', 'middle')
+						.style('alignment-baseline','middle')
+						.attr('class', poly.cellTextClassName)
+						.text(function(d) {
+							return d.value;
+						})
+						.style('fill',poly.textColors[0]);
+
+				cellTexts.transition().duration(poly.duration)
+					.style('fill',function(d) {
+						return textColorScale(d.value);
+					});
+
+				var legend = this._svg.selectAll('.'+poly.legendClassName)
+					.data([0].concat(bgColorScale.quantiles()), function(d) {
+						return d;
+					})
+					.enter().append('g')
+						.attr('class', poly.legendClassName);
+
+				legend.append('rect')
+					.attr('x', function(d, i) {
+						return legendElementWidth * i;
+					})
+					.attr('y', height + (poly._gridSize / 4))
+					.attr('width', legendElementWidth)
+					.attr('height', poly._gridSize / 3)
+					.style('fill', function(d, i) {
+						return poly.bgColors[i];
+					});
+
+				legend.append('text')
+					.text(function(d) {
+						return '≥ ' + Math.round(d);
+					})
+					.style('alignment-baseline','top')
+					.attr('x', function(d, i) {
+						return legendElementWidth * i;
+					})
+					.attr('y', height + poly._gridSize);
+			}
+		});
+	</script>
+</polymer-element>

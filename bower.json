@@ -1,0 +1,31 @@
+{
+  "name": "tcg-heatmap",
+  "version": "0.1.0",
+  "authors": [
+    "Raymond Chou <raymond.chou@thecontrolgroup.com>"
+  ],
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer"
+  ],
+  "main": "tcg-heatmap.html",
+  "description": "TCG Polymer Heatmap.",
+  "homepage": "https://github.com/the-control-group/tcg-heatmap/",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^0.5",
+    "d3": "~3.5.6"
+  },
+  "devDependencies": {
+    "iron-doc-viewer": "PolymerElements/iron-doc-viewer",
+    "web-component-tester": "Polymer/web-component-tester#~2.2.6"
+  }
+}
