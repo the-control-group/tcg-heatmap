@@ -1,4 +1,81 @@
-<!-- copied this guy: http://bl.ocks.org/tjdecke/5558084 -->
+<!--
+@element tcg-heatmap
+@author designbyraychou
+@homepage https://github.com/the-control-group/tcg-heatmap
+
+**This element is compatible with Polymer 0.5.**
+
+copied this guy: http://bl.ocks.org/tjdecke/5558084
+
+__Example:__
+
+```
+	<tcg-heatmap
+		yAxisLabels="{{ yAxisLabels }}"
+		xAxisLabels="{{ xAxisLabels }}"
+		bgColors="{{ bgColors }}"
+		textColors="{{ textColors }}"
+		data="{{ data }}"></tcg-heatmap>
+```
+# Attributes
+
+#### `margin`
+
+Object to set margin around the heatmap. This will leave space for the axis labels and color key.
+
+#### `width`
+
+Number for the width of the entire element
+
+#### `height`
+
+Number for the height of the entire element
+
+#### `duration`
+
+Number in milliseconds for the animation time
+
+#### `legendClassName`
+
+String for the class name
+
+#### `cellBackgroundClassName`
+
+String for the class name
+
+#### `cellTextClassName`
+
+String for the class name
+
+#### `xAxisLabelClassName`
+
+String for the class name
+
+#### `yAxisLabelClassName`
+
+String for the class name
+
+#### `xAxisLabels`
+
+Array of strings for the x axis labels
+
+#### `yAxisLabels`
+
+Array of strings for the y axis labels
+
+#### `bgColors`
+
+Array of strings for the heatmap cell colors. Ordered by smallest value to largest value
+
+#### `textColors`
+
+Array of strings for the heatmap text colors. Ordered by smallest value to largest value
+
+#### `data`
+
+Array: Example [{x: 0, y: 0, value: 20}]
+
+-->
 <link rel="import" href="../polymer/polymer.html">
 <polymer-element name="tcg-heatmap" attributes="margin width height duration legendClassName cellBackgroundClassName cellTextClassName xAxisLabelClassName yAxisLabelClassName xAxisLabels yAxisLabels bgColors textColors data legendElementWidth">
 	<template>
@@ -28,53 +105,19 @@
 				bgColors: [],
 				textColors: [],
 				data: [],
+				_svg: null,
 			},
 			ready: function() {
-				var poly = this;
-				this._gridSize = Math.floor((this.width - this.margin.left - this.margin.right) / this.xAxisLabels.length);
-				this._svg = d3.select(this.$.chart).append('svg')
-					.attr('width', this.width)
-					.attr('height', this.height)
-					.append('g')
-					.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
-
-				this._svg.selectAll('.'+poly.yAxisLabelClassName)
-					.data(this.yAxisLabels)
-					.enter().append('text')
-						.text(function (d) {
-							return d;
-						})
-						.attr('x', 0)
-						.attr('y', function (d, i) {
-							return i * poly._gridSize;
-						})
-						.style('text-anchor', 'end')
-						.attr('transform', 'translate(-6,' + poly._gridSize / 1.5 + ')')
-						.attr('class', function (d, i) {
-							return poly.yAxisLabelClassName;
-						});
-
-				this._svg.selectAll('.'+poly.xAxisLabelClassName)
-					.data(this.xAxisLabels)
-					.enter().append('text')
-						.text(function(d) {
-							return d;
-						})
-						.attr('x', function(d, i) {
-							return i * poly._gridSize;
-						})
-						.attr('y', 0)
-						.style('text-anchor', 'middle')
-						.attr('transform', 'translate(' + poly._gridSize / 2 + ', -6)')
-						.attr('class', function(d, i) {
-							return poly.xAxisLabelClassName;
-						});
+				this.async(function(){
+					this.drawGraph();
+				});
 			},
 			dataChanged: function(oldValue,newValue) {
+				this.drawGraph();
+
 				var poly = this;
 				var height = this.height - this.margin.top - this.margin.bottom;
 				var legendElementWidth = this.legendElementWidth || this._gridSize*2;
-
 				var bgColorScale = d3.scale.quantile()
 					.domain([0, poly.bgColors.length - 1, d3.max(poly.data, function (d) {
 						return d.value;
@@ -156,6 +199,49 @@
 						return legendElementWidth * i;
 					})
 					.attr('y', height + poly._gridSize);
+			},
+			drawGraph: function() {
+				var poly = this;
+				this._gridSize = Math.floor((this.width - this.margin.left - this.margin.right) / this.xAxisLabels.length);
+				if( this._svg == null && this.yAxisLabels.length && this.xAxisLabels.length ) {
+					this._svg = d3.select(this.$.chart).append('svg')
+						.attr('width', this.width)
+						.attr('height', this.height)
+						.append('g')
+						.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+
+					this._svg.selectAll('.'+poly.yAxisLabelClassName)
+						.data(this.yAxisLabels)
+						.enter().append('text')
+							.text(function (d) {
+								return d;
+							})
+							.attr('x', 0)
+							.attr('y', function (d, i) {
+								return i * poly._gridSize;
+							})
+							.style('text-anchor', 'end')
+							.attr('transform', 'translate(-6,' + poly._gridSize / 1.5 + ')')
+							.attr('class', function (d, i) {
+								return poly.yAxisLabelClassName;
+							});
+
+					this._svg.selectAll('.'+poly.xAxisLabelClassName)
+						.data(this.xAxisLabels)
+						.enter().append('text')
+							.text(function(d) {
+								return d;
+							})
+							.attr('x', function(d, i) {
+								return i * poly._gridSize;
+							})
+							.attr('y', 0)
+							.style('text-anchor', 'middle')
+							.attr('transform', 'translate(' + poly._gridSize / 2 + ', -6)')
+							.attr('class', function(d, i) {
+								return poly.xAxisLabelClassName;
+							});
+				}
 			}
 		});
 	</script>

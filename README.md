@@ -1,38 +1,73 @@
-# tcg-swipe
+# tcg-heatmap
 
 **This element is compatible with Polymer 0.5.**
+
+copied this guy: http://bl.ocks.org/tjdecke/5558084
 
 __Example:__
 
 ```
-	<tcg-swipe id="swipe" isReveal="{{ isReveal }}" xThreshold="{{ xThreshold }}" animationTime="{{ animationTime }}">
-		<div touchpad>Overlay Content</div>
-		<div left>
-			Left Content
-			<a href="#" class="close" on-tap="{{ close }}">Close</a>
-		</div>
-		<div right>
-			Right Content
-			<a href="#" class="close" on-tap="{{ close }}">Close</a>
-		</div>
-	</tcg-swipe>
+	<tcg-heatmap
+		yAxisLabels="{{ yAxisLabels }}"
+		xAxisLabels="{{ xAxisLabels }}"
+		bgColors="{{ bgColors }}"
+		textColors="{{ textColors }}"
+		data="{{ data }}"></tcg-heatmap>
 ```
 # Attributes
 
-#### `isReveal`
+#### `margin`
 
-Boolean that determines if the left and right content is position right below the touchpad. If `false`, left and right content moves with the touchpad.
+Object to set margin around the heatmap. This will leave space for the axis labels and color key.
 
-#### `xThreshold`
+#### `width`
 
-Number that determines if it'll reveal the full content on trackend event. Default is `50` px
+Number for the width of the entire element
 
-#### `animationTime`
+#### `height`
 
-Number in milliseconds for animation length
+Number for the height of the entire element
 
-# Methods
+#### `duration`
 
-#### `close`
+Number in milliseconds for the animation time
 
-Resets the positions
+#### `legendClassName`
+
+String for the class name
+
+#### `cellBackgroundClassName`
+
+String for the class name
+
+#### `cellTextClassName`
+
+String for the class name
+
+#### `xAxisLabelClassName`
+
+String for the class name
+
+#### `yAxisLabelClassName`
+
+String for the class name
+
+#### `xAxisLabels`
+
+Array of strings for the x axis labels
+
+#### `yAxisLabels`
+
+Array of strings for the y axis labels
+
+#### `bgColors`
+
+Array of strings for the heatmap cell colors. Ordered by smallest value to largest value
+
+#### `textColors`
+
+Array of strings for the heatmap text colors. Ordered by smallest value to largest value
+
+#### `data`
+
+Array: Example [{x: 0, y: 0, value: 20}]
