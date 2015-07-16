@@ -112,13 +112,23 @@ Array: Example [{x: 0, y: 0, value: 20}]
 				'xAxisLabels yAxisLabels data': 'reDrawGraph',
 			},
 			ready: function() {
-				window.addEventListener('resize',_.debounce(this.drawGraph.bind(this),66));
+				var poly = this;
+				var resizeTimeout;
+				this._onResize = function() {
+					if ( !resizeTimeout ) {
+						resizeTimeout = setTimeout(function() {
+							resizeTimeout = null;
+							poly.drawGraph();
+						}, 60);
+					}
+				};
+				window.addEventListener('resize',this._onResize);
 				this.async(function() {
 					this.reDrawGraph();
 				});
 			},
 			detached: function() {
-				window.removeEventListener('resize',_.debounce(this.drawGraph.bind(this),66));
+				window.removeEventListener('resize',this._onResize);
 			},
 			reDrawGraph: function() {
 				this._isNew = true;
