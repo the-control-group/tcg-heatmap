@@ -69,7 +69,7 @@ Array: Example [{x: 0, y: 0, value: 20}]
 
 -->
 <link rel="import" href="../polymer/polymer.html">
-<polymer-element name="tcg-heatmap" attributes="margin duration legendClassName cellBackgroundClassName cellTextClassName xAxisLabelClassName yAxisLabelClassName xAxisLabels yAxisLabels bgColors textColors data legendElementWidth">
+<polymer-element name="tcg-heatmap" attributes="margin duration legendClassName cellBackgroundClassName cellTextClassName xAxisLabelClassName yAxisLabelClassName xAxisLabels yAxisLabels bgColors textColors data formatLegend">
 	<template>
 		<style>
 		::host,
@@ -93,7 +93,6 @@ Array: Example [{x: 0, y: 0, value: 20}]
 					left: 30,
 					bottom: 100
 				},
-				legendElementWidth: null,
 				duration: 1000,
 				legendClassName: 'legend',
 				cellBackgroundClassName: 'cell',
@@ -126,15 +125,20 @@ Array: Example [{x: 0, y: 0, value: 20}]
 			drawGraph: function() {
 				this.job('drawGraph',function(){
 					this.setDimensions();
-					this.setSVG();
-					if( this._svg != null ) {
+					if( this.xAxisLabels.length && this.yAxisLabels.length ) {
+						this.setSVG();
 						this.setLabels();
+					}
+					if( this._svg != null ) {
 						this.setColors();
 						this.setLegend();
 						this.setCells();
 					}
 					this.fire('done');
 				},60);
+			},
+			formatLegend: function(data) {
+				return '≥ ' + data.toFixed(2);
 			},
 			setDimensions: function() {
 				var rect = this.getBoundingClientRect();
@@ -158,16 +162,18 @@ Array: Example [{x: 0, y: 0, value: 20}]
 					.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
 			},
 			setColors: function() {
+				var max = d3.max(this.data, function (d) {
+					return Number(d.value);
+				});
+				var min = d3.min(this.data, function (d) {
+					return Number(d.value);
+				});
 				this._bgColorScale = d3.scale.quantile()
-					.domain([0, this.bgColors.length - 1, d3.max(this.data, function (d) {
-						return d.value;
-					})])
+					.domain([min, max])
 					.range(this.bgColors);
 
 				this._textColorScale = d3.scale.quantile()
-					.domain([0, this.textColors.length - 1, d3.max(this.data, function (d) {
-						return d.value;
-					})])
+					.domain([min, max])
 					.range(this.textColors);
 			},
 			setLabels: function() {
@@ -179,12 +185,12 @@ Array: Example [{x: 0, y: 0, value: 20}]
 							.text(function (d) {
 								return d;
 							})
-							.attr('x', 0)
+							.attr('x', -10)
 							.attr('y', function (d, i) {
-								return i * poly._gridSize.y;
+								return ((i+1) * poly._gridSize.y) - (poly._gridSize.y/2);
 							})
 							.style('text-anchor', 'end')
-							.attr('transform', 'translate(-6,' + poly._gridSize.x / 1.5 + ')')
+							.style('alignment-baseline','middle')
 							.attr('class', function (d, i) {
 								var count = i+1;
 								return poly.yAxisLabelClassName + ' y'+count;
@@ -197,11 +203,10 @@ Array: Example [{x: 0, y: 0, value: 20}]
 								return d;
 							})
 							.attr('x', function(d, i) {
-								return i * poly._gridSize.x;
+								return ((i+1) * poly._gridSize.x) - (poly._gridSize.x/2);
 							})
-							.attr('y', 0)
+							.attr('y', -10)
 							.style('text-anchor', 'middle')
-							.attr('transform', 'translate(' + poly._gridSize.y / 2 + ', -6)')
 							.attr('class', function(d, i) {
 								var count = i+1;
 								return poly.xAxisLabelClassName + ' x'+count;
@@ -211,7 +216,8 @@ Array: Example [{x: 0, y: 0, value: 20}]
 			setLegend: function() {
 				var poly = this;
 				var height = this._height - this.margin.top - this.margin.bottom;
-				var legendElementWidth = this.legendElementWidth || this._gridSize.x*2;
+				var legendWidth = (this._width - this.margin.left - this.margin.right )/ this.bgColors.length;
+				var legendHeight = 10;
 
 				var legend = this._svg.selectAll('.'+poly.legendClassName)
 					.data([0].concat(this._bgColorScale.quantiles()), function(d) {
@@ -221,24 +227,24 @@ Array: Example [{x: 0, y: 0, value: 20}]
 						.attr('class', poly.legendClassName);
 				legend.append('rect')
 					.attr('x', function(d, i) {
-						return legendElementWidth * i;
+						return legendWidth * i;
 					})
-					.attr('y', height + (poly._gridSize.y / 4))
-					.attr('width', legendElementWidth)
-					.attr('height', poly._gridSize.y / 3)
+					.attr('y', height - legendHeight + (poly.margin.bottom / 3) )
+					.attr('width', legendWidth)
+					.attr('height', legendHeight)
 					.style('fill', function(d, i) {
 						return poly.bgColors[i];
 					});
 
 				legend.append('text')
 					.text(function(d) {
-						return '≥ ' + Math.round(d);
+						return poly.formatLegend(d);
 					})
 					.style('alignment-baseline','top')
 					.attr('x', function(d, i) {
-						return legendElementWidth * i;
+						return legendWidth * i;
 					})
-					.attr('y', height + poly._gridSize.y);
+					.attr('y', height + 15 + (poly.margin.bottom / 3) );
 			},
 			setCells: function(oldValue,newValue) {
 				var poly = this;
