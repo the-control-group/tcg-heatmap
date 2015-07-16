@@ -69,7 +69,7 @@ Array: Example [{x: 0, y: 0, value: 20}]
 
 -->
 <link rel="import" href="../polymer/polymer.html">
-<polymer-element name="tcg-heatmap" attributes="margin duration legendClassName cellBackgroundClassName cellTextClassName xAxisLabelClassName yAxisLabelClassName xAxisLabels yAxisLabels bgColors textColors data formatLegend">
+<polymer-element name="tcg-heatmap" attributes="margin duration legendClassName cellBackgroundClassName cellTextClassName xAxisLabelClassName yAxisLabelClassName xAxisLabels yAxisLabels bgColors textColors data min max formatLegend">
 	<template>
 		<style>
 		::host,
@@ -104,6 +104,8 @@ Array: Example [{x: 0, y: 0, value: 20}]
 				bgColors: [],
 				textColors: [],
 				data: [],
+				min: null,
+				max: null,
 				_svg: null,
 			},
 			observe: {
@@ -162,10 +164,10 @@ Array: Example [{x: 0, y: 0, value: 20}]
 					.attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
 			},
 			setColors: function() {
-				var max = d3.max(this.data, function (d) {
+				var max = this.max ? Number(this.max) : d3.max(this.data, function (d) {
 					return Number(d.value);
 				});
-				var min = d3.min(this.data, function (d) {
+				var min = this.min ? Number(this.min) : d3.min(this.data, function (d) {
 					return Number(d.value);
 				});
 				this._bgColorScale = d3.scale.quantile()
